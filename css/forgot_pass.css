@@ -1,0 +1,220 @@
+/* Delicious Near Nonthaburi/css/forgot_pass.css */
+
+/* ตัวอย่าง CSS สำหรับหน้าลืมรหัสผ่าน (อาจจะคล้ายกับ login.css) */
+
+.container {
+    display: flex;
+    justify-content: center; /* Center the content horizontally */
+    align-items: center; /* Center the content vertically if needed */
+    min-height: calc(100vh - 120px); /* Adjust based on header/footer height */
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.left-column {
+    flex: 1;
+    background-image: url('../static/images/ForgotPassBG.png'); /* เปลี่ยนรูปภาพพื้นหลัง */
+    background-size: cover;
+    background-position: center;
+    border-radius: 10px 0 0 10px; /* Rounded corners only on the left */
+    min-height: 500px; /* Adjust height as needed */
+    display: none; /* ซ่อนในมือถือ */
+}
+
+.right-column {
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 450px; /* Fixed width for the form container */
+    text-align: center;
+    position: relative;
+    box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+    .left-column {
+        display: block; /* แสดงใน Desktop */
+    }
+    .right-column {
+        border-radius: 0 10px 10px 0; /* Rounded corners only on the right for desktop */
+    }
+}
+
+
+/* ส่วนของ cross icon */
+.cross-icon-wrapper {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    cursor: pointer;
+}
+
+.cross_icon {
+    width: 24px;
+    height: 24px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.cross_icon:hover {
+    opacity: 1;
+}
+
+.LoginTitle {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.subtitle {
+    font-size: 15px;
+    color: #555;
+    margin-bottom: 25px;
+}
+
+.forgot-password-form .form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.label-and-error-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end; /* จัดให้ error message ชิดล่างของ label */
+    margin-bottom: 5px;
+}
+
+.LoginLabel {
+    display: block;
+    font-size: 16px;
+    color: #333;
+    font-weight: 600;
+}
+
+.form-group input[type="email"],
+.form-group input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box; /* สำคัญ: ให้ padding ไม่ทำให้ width เกิน */
+    transition: border-color 0.3s ease;
+}
+
+.form-group input[type="email"]:focus,
+.form-group input[type="password"]:focus {
+    outline: none;
+    border-color: #F8C44E; /* สีเดียวกับปุ่ม login */
+}
+
+/* Error Message Styles */
+.error-message {
+    color: #e74c3c; /* แดง */
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0; /* ซ่อนโดยค่าเริ่มต้น */
+    height: 0; /* ซ่อนพื้นที่โดยค่าเริ่มต้น */
+    overflow: hidden; /* ซ่อนเนื้อหาที่เกิน */
+    transition: opacity 0.3s ease, height 0.3s ease;
+}
+
+.error-message.show-error {
+    opacity: 1; /* แสดงเมื่อมีคลาส show-error */
+    height: auto; /* แสดงพื้นที่ */
+    margin-left: 10px; /* เพิ่มระยะห่างจาก label */
+}
+
+.form-group input.is-invalid {
+    border-color: #e74c3c !important; /* เปลี่ยนสีเส้นขอบเป็นสีแดงเมื่อมี error */
+}
+
+
+.form-bottom-actions {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.button1 {
+    width: 100%;
+    padding: 12px;
+    background-color: #F8C44E; /* สีส้มทอง */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button1:hover {
+    background-color: #e6b33e; /* สีส้มทองเข้มขึ้นเมื่อ hover */
+}
+
+.divider-with-text {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #8a8a8a; /* เพื่อดูว่ามันแสดงจริง */
+}
+
+.divider-with-text::before,
+.divider-with-text::after {
+    content: '';
+    flex: 1;
+    border-bottom: 2px solid #8a8a8a !important;
+    margin: 0 10px;
+}
+
+.divider-with-text span {
+    white-space: nowrap;
+    background-color: white;
+    padding: 0 8px;
+}
+
+
+.register-link-container {
+    margin-top: 20px;
+    font-size: 15px;
+    color: #555;
+}
+
+.register-link {
+    color: #F8C44E;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.register-link:hover {
+    text-decoration: underline;
+}
+
+/* responsive */
+@media (max-width: 767px) {
+    .right-column {
+        max-width: 90%; /* On smaller screens, allow it to take more width */
+        padding: 25px;
+        border-radius: 10px; /* Always rounded for mobile */
+    }
+    .LoginTitle {
+        font-size: 24px;
+    }
+    .subtitle {
+        font-size: 14px;
+    }
+    .LoginLabel {
+        font-size: 15px;
+    }
+    .form-group input {
+        padding: 10px;
+        font-size: 15px;
+    }
+    .button1 {
+        padding: 10px;
+        font-size: 16px;
+    }
+}

@@ -1,0 +1,197 @@
+body {
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #fff6d9;
+    color: #4F2B14;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 20px;
+}
+
+.Title {
+    text-align: center;
+    color: #4F2B14;
+    font-family: 'SukhumvitSet-Text', sans-serif;
+    font-size: 2em;
+    white-space: nowrap;
+    margin-bottom: 30px;
+}
+
+.filter-section {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    padding: 20px;
+    margin-bottom: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 180px;
+}
+
+.filter-section label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+.filter-section select,
+.filter-section input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-size: 1em;
+    background-color: #fcfcfc;
+}
+
+.filter-section button {
+    padding: 10px 25px;
+    background-color: #4F2B14;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+}
+
+.filter-section button:hover {
+    background-color: #a95b2a;
+}
+
+.restaurant-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+}
+
+.restaurant-card {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.restaurant-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.restaurant-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+}
+
+.restaurant-card-content {
+    padding: 15px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.restaurant-card h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 1.5em;
+    color: #2c3e50;
+}
+
+.restaurant-card p {
+    margin: 5px 0;
+    font-size: 0.95em;
+    color: #666;
+}
+
+.restaurant-card .rating {
+    font-weight: bold;
+    color: #FFC107;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.restaurant-card .rating::before {
+    content: '⭐';
+    font-size: 1.1em;
+}
+
+.restaurant-card .status {
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+.restaurant-card .status.open {
+    background-color: #e6ffe6;
+    color: #28a745;
+}
+
+.restaurant-card .status.closed {
+    background-color: #ffe6e6;
+    color: #dc3545;
+}
+
+.restaurant-card .status.unknown {
+    background-color: #f0f0f0;
+    color: #6c757d;
+}
+
+.no-results {
+    text-align: center;
+    padding: 50px;
+    color: #777;
+    font-size: 1.3em;
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+    .filter-section {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .filter-group {
+        min-width: unset;
+    }
+    .filter-section button {
+        width: 100%;
+        margin-top: 10px;
+    }
+    .restaurant-list {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+}
+
+/* เพิ่มในส่วน CSS ของคุณ */
+.restaurant-card-link {
+    text-decoration: none; /* ลบขีดเส้นใต้ลิงก์ */
+    color: inherit; /* ใช้สีตัวอักษรของ parent */
+    /* คุณอาจเพิ่ม display: block; เพื่อให้ครอบคลุมพื้นที่ทั้งหมดของ Card */
+}
+
+/* คุณสามารถใช้ selector ร่วมกันได้ หากต้องการให้ effect hover ของ card ยังคงทำงาน */
+.restaurant-card-link:hover .restaurant-card {
+    transform: translateY(-5px); /* เลื่อน Card ขึ้นเล็กน้อยเมื่อเมาส์โฮเวอร์ */
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15); /* เพิ่มเงาเมื่อเมาส์โฮเวอร์ */
+}

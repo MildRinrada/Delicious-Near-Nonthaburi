@@ -1,0 +1,422 @@
+body {
+    background-color: #FFEFC0;
+}
+
+.Section1 {
+    display: flex;
+    justify-content: space-between; 
+    align-items: flex-end;
+    gap: 1rem;
+    max-width: 1200px; 
+    margin: 0 auto; 
+    padding: 1rem;
+}
+
+.left-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+    flex-basis: 70%;
+}
+
+#main-logo-section {
+    max-width: 300px;
+    height: auto;
+    display: block;
+}
+
+.searchSection1 {
+    font-family: 'SukhumvitSet-Text', sans-serif;
+    font-weight: bold;
+    color: #4F2B14;
+    font-size: 57px;
+    margin: 0;
+    line-height: 1.2; 
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    max-width: 751px;    
+    border: 4px solid #4F2B14;
+    background-color: #F8C44E;
+    border-radius: 30px;
+    overflow: hidden;
+    position: relative;
+    padding-right: 50px;
+    width: 100%;
+}
+
+#search-input {
+    flex-grow: 1;
+    padding: 12px 20px;
+    border: none;
+    outline: none;
+    font-size: 1.1em;
+    font-family: 'SukhumvitSet-Text', sans-serif;
+    color: #4F2B14;
+    background-color: transparent;
+}
+
+#search-input::placeholder {
+    color: #4F2B14;
+    opacity: 0.8;
+}
+
+.search-icon {
+    position: absolute;
+    right: 15px; 
+    cursor: pointer;
+    font-size: 1.2em;
+    color: #4F2B14;
+    transition: color 0.2s ease;
+}
+
+.search-icon:hover {
+    color: #6C442A;
+}
+
+.right-image {
+    display: flex; 
+    flex-direction: column; 
+    justify-content: flex-end; 
+    align-items: flex-end;
+}
+
+#main-logo-section { 
+    max-width: 300px; 
+    height: auto;
+    display: block;
+}
+
+.button-group {
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.button1 {
+    background-color: #4F2B14;
+    color: #F8C44E;
+    padding: 0.6em 1.5em; 
+    font-size: 1em; 
+    font-family: 'SukhumvitSet-Text', sans-serif;
+    font-weight: bold;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button1:hover {
+    background-color: #311A0C;
+}
+
+.Section2 {
+    background-color: #F8C44E;
+}
+
+
+.promotion-slider-container {
+    position: relative; 
+    width: 100%; 
+    max-width: 660px; 
+    margin: 40px 0 40px 75px;
+    overflow: hidden; 
+    border-radius: 10px; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.ads-slider-container {
+    position: relative; 
+    width: 100%;
+    max-width: 571px; 
+    margin: 40px 0 40px 75px;
+    overflow: hidden; /* ซ่อนรูปภาพที่อยู่นอกพื้นที่ */
+    border-radius: 10px; /* ทำให้มุมมนเล็กน้อย (ไม่บังคับ) */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* เพิ่มเงา (ไม่บังคับ) */
+}
+
+.ads1 {
+    display: none;
+    width: 100%;
+}
+
+.ads1.active-slide {
+    display: block;
+}
+
+.slider-section-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; 
+    flex-wrap: wrap;
+    gap: 30px;
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 15px;
+}
+
+.promotion-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-basis: calc(50% - 15px);
+    flex-grow: 1;
+    max-width: 580px;
+}
+
+.ads-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-basis: calc(50% - 15px);
+    flex-grow: 1;
+    max-width: 580px;
+    margin-top: 30px; 
+}
+
+.PromotionTitle {
+    font-family: 'SukhumvitSet-Text', sans-serif;
+    font-weight: bold;
+    color: #4F2B14;
+    font-size: 45px;
+    margin-bottom: 1px;
+    text-align: left; 
+    width: 100%;
+}
+
+.promotion-slider-container,
+.ads-slider-container {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.ads1 img.promotion1 { 
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.Section3 {
+    background-color: #FFEFC0;
+    padding-top: 10px;
+}
+
+.CategoryTitle{
+    font-family: 'SukhumvitSet-Text', sans-serif;
+    font-weight: bold;
+    color: #4F2B14;
+    font-size: 45px;
+    margin-top: 50px;
+    margin-bottom: 20px;
+    text-align: center; 
+    width: 100%;
+}
+
+.category-grid {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    gap: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.col-1-4 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    flex: 1;
+    text-align: center;
+    height: auto;
+}
+
+.col-1-4 img {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    display: block; 
+    margin: 0 auto 10px auto;
+}
+
+.col-1-4 .button1 {
+    margin-top: 5px;
+}
+
+.Section4{
+    background-color: #F8C44E;
+}
+
+.ContactTitle{
+    font-family: 'SukhumvitSet-Text', sans-serif;
+    font-weight: bold;
+    color: #4F2B14;
+    font-size: 45px;
+    margin-bottom: 1px;
+    text-align: left; 
+    width: 100%;
+}
+
+
+/* ในไฟล์ CSS ของคุณ */
+
+.grid {
+    width: 100%;
+    max-width: 1140px;
+    min-width: 755px; /* พิจารณา min-width นี้ อาจทำให้ layout เสียในจอเล็กมาก */
+    margin: 0 auto;
+    overflow: hidden;
+    
+    /* --- เพิ่ม Flexbox ให้กับ .grid (หรือ .grid-pad) --- */
+    display: flex; /* ทำให้ .grid เป็น Flex container */
+    flex-wrap: wrap; /* สำคัญ! ให้ col-1-2 ขึ้นบรรทัดใหม่ได้เมื่อจอเล็ก */
+    justify-content: space-between; /* หรือ space-around, center เพื่อจัดเรียงคอลัมน์ */
+    /* ------------------------------------------------ */
+}
+
+.grid-pad {
+    padding: 20px 0 0px 20px;
+    /* ถ้าคุณต้องการให้ padding ด้านขวาของ .grid-pad > [class*='col-']:last-of-type ทำงานได้จริง */
+    /* ควรเปลี่ยน padding: 20px 0 0px 20px; เป็น padding: 20px 20px 0px 20px; */
+    /* เพื่อให้มี padding ด้านขวาของ grid-pad ด้วย */
+}
+
+/* คุณได้กำหนด padding-right ให้ last-of-type แล้ว ซึ่งดี */
+.grid-pad > [class*='col-']:last-of-type {
+    padding-right: 20px;
+}
+
+
+.col-1-2 {
+    /* --- กำหนดความกว้างของแต่ละคอลัมน์ --- */
+    flex-basis: calc(50% - 10px); /* ให้แต่ละคอลัมน์มีขนาด 50% ของ parent ลบด้วยครึ่งหนึ่งของ gap ที่ต้องการ */
+    /* หรือใช้ width: 48%; เพื่อให้มีช่องว่างระหว่างกัน */
+    max-width: calc(50% - 10px); /* จำกัดความกว้างสูงสุด */
+    min-width: 300px; /* เพื่อป้องกันไม่ให้แคบเกินไปในจอเล็ก */
+    /* ------------------------------------ */
+    
+    /* ไม่จำเป็นต้องมี display: block; ที่นี่ ถ้า col-1-2 เป็น flex item */
+    /* display: block; */
+}
+
+/* สไตล์สำหรับเนื้อหาใน col-1-2 เพื่อให้มันดูเป็นระเบียบ */
+.content.address,
+.content.contact-form {
+    width: 100%; /* ทำให้เนื้อหาภายใน col-1-2 เต็มพื้นที่ */
+    padding: 15px; /* เพิ่ม padding ภายใน content box */
+    box-sizing: border-box; /* สำคัญ: เพื่อให้ padding ไม่เพิ่มความกว้างของ box */
+}
+
+.ContactTitle {
+    font-family: 'SukhumvitSet-Text', sans-serif;
+    font-weight: bold;
+    color: #4F2B14;
+    font-size: 45px;
+    margin-bottom: 20px;
+    text-align: center; 
+    width: 100%;
+}
+
+.grid-pad {
+    padding: 20px 0 0px 20px;
+    gap: 20px;
+}
+
+.pleft-25 {
+  padding-left: 25px;
+}
+
+.col-1-2{
+	width: 50%;
+}
+
+address {
+    margin-top: 3em;
+}
+
+address > div { 
+    display: flex; 
+    align-items: center;
+    justify-content: flex-start; 
+    margin-top: 20px;
+}
+
+.box-icon2 {
+    border-right: 2px solid #4F2B14;
+    height: 45px;
+    width: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 10px;
+}
+
+.box-icon2 img {
+    width: 25px;
+    height: auto;
+    display: block;
+}
+
+/* ในไฟล์ CSS ของคุณ */
+
+.text-content {
+    display: flex; 
+    flex-direction: column;
+    align-items: flex-start; 
+    justify-content: center; 
+}
+
+.email-label {
+    margin-bottom: 0px;
+    color: #4F2B14;
+    font-size: 1.125em;
+    font-family: 'SukhumvitSet-Text', sans-serif;
+}
+
+.email-address {
+    color: #4F2B14;
+    margin-top: 0px;
+}
+
+.content{
+  margin: 0 auto;
+  text-align: center;
+}
+
+.contact-form .form {
+  padding: 0;
+}
+
+input[type=text].second-input{
+  width: 80% !important;
+  height: 50px;
+  margin-bottom: 25px;
+  padding: 0 15px 2px;
+  border: 2px solid #4F2B14; /* เปลี่ยนสีของเส้นขอบ */
+  border-radius: 0 20px 20px 0; /* เปลี่ยนรูปร่างขอบ */
+  background: #FFEFC0;
+  color: #4F2B14;
+}
+
+textarea {
+    width: 80% !important;
+    height: 150px;
+    margin-bottom: 25px;
+    padding: 10px 15px 2px 15px;
+    border: 2px solid #4F2B14;
+    border-radius: 0 20px 20px 0;
+    background: #FFEFC0;
+    color: #4F2B14;
+}

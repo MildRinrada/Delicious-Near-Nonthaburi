@@ -1,0 +1,92 @@
+body, input, textarea {
+  font-family: 'SukhumvitSet-Text', sans-serif;
+  color:#4F2B14;
+}
+
+header {
+    background-color: #FFEFC0;
+    color: white;
+    padding: 0.5em 2em;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%; 
+    height: 100%; 
+    scroll-behavior: smooth;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+#main-logo {
+    max-height: 60px; 
+    width: auto; 
+    display: block; 
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex; 
+    align-items: center; 
+}
+
+nav li {
+    margin: 0 0.5em; 
+}
+
+.nav1_header {
+    color: #4F2B14;
+    text-decoration: none;
+    font-family: 'SukhumvitSet-Text', sans-serif; 
+    font-weight: bold;
+    padding: 0.3em 0.8em;
+    border-radius: 5px;
+}
+
+.nav1_header:hover {
+    background-color: #F8C44E;
+}
+
+@font-face {
+    font-family: 'SukhumvitSet-Text';
+    src: url('../fonts/SukhumvitSet-Text.ttf') format('truetype');
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SukhumvitSet-Text'; 
+    src: url('../fonts/SukhumvitSet-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+.login-button {
+    background-color: #4F2B14;
+    color: #FFEFC0;
+    padding: 0.6em 1.5em;
+    font-size: 1em;
+    font-family: 'SukhumvitSet-Text', sans-serif;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-left: 0.5em;
+}
+
+.login-button:hover {
+    background-color: #311A0C;
+}
+
+main {
+    padding: 20px;
+    margin-top: 4em;
+}
+
