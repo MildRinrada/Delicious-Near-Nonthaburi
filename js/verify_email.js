@@ -1,6 +1,6 @@
-// ../js/verify_email.js
-
 document.addEventListener('DOMContentLoaded', function() {
+    emailjs.init("QOtzQR-DwANTtEMz9");
+
     const verificationCodeInput = document.getElementById('verification-code');
     const codeErrorMessage = document.getElementById('code-error');
     const verifyEmailForm = document.querySelector('.verify-email-form');
@@ -8,11 +8,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const userEmailDisplay = document.getElementById('user-email-display'); 
     const emailToVerifyInput = document.getElementById('emailToVerify'); // อ้างอิง hidden input
 
-    // ฟังก์ชันสำหรับแสดง/ซ่อนข้อความ Error
     function showCodeError(message) {
         codeErrorMessage.textContent = message;
         codeErrorMessage.classList.add('show-error');
-        verificationCodeInput.classList.add('is-invalid'); // เพิ่ม class ให้ input เป็นสีแดง
+        verificationCodeInput.classList.add('is-invalid'); 
     }
 
     function hideCodeError() {
@@ -21,7 +20,6 @@ document.addEventListener('DOMContentLoaded', function() {
         verificationCodeInput.classList.remove('is-invalid');
     }
 
-    // ตรวจสอบรหัสยืนยันเมื่อผู้ใช้เริ่มพิมพ์
     verificationCodeInput.addEventListener('input', function() {
         const code = verificationCodeInput.value.trim();
         if (code === '' || (code.length === 6 && /^\d{6}$/.test(code))) {
@@ -29,16 +27,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // ตรวจสอบฟอร์มเมื่อกด Submit
     if (verifyEmailForm) {
         verifyEmailForm.addEventListener('submit', function(event) {
-            event.preventDefault(); // ป้องกันการส่งฟอร์มทันที
+            event.preventDefault();
 
             let isValid = true;
             const code = verificationCodeInput.value.trim();
-            const email = emailToVerifyInput.value.trim(); // ดึงอีเมลจาก hidden input
+            const email = emailToVerifyInput.value.trim();
 
-            // ตรวจสอบว่ารหัสยืนยันไม่ว่างเปล่าและเป็นตัวเลข 6 หลัก
             if (code === '') {
                 showCodeError('กรุณากรอกรหัสยืนยัน');
                 isValid = false;
@@ -50,12 +46,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (isValid) {
-                // ถ้าข้อมูลถูกต้อง ให้ส่งข้อมูลไปยัง Back-end ด้วย fetch API
                 const formData = new FormData();
                 formData.append('email', email);
                 formData.append('verification_code', code);
 
-                fetch('verify_email_process.php', { // ส่งไปยัง verify_email_process.php
+                fetch('verify_email_process.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -72,12 +67,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .then(data => {
                     if (data.success) {
-                        // *** จุดที่แก้ไข: แสดง alert ก่อน แล้วค่อย Redirect ***
-                        alert(data.message); // แสดงป๊อปอัพด้วยข้อความจาก PHP
-                        window.location.href = 'login.php'; // วาร์ปไปหน้า login.php
+                        alert(data.message);
+                        window.location.href = 'login.php';
                     } else {
-                        // รหัสผิด: แสดงข้อความ Error สีแดง
-                        showCodeError(data.message); // แสดงข้อความ Error จาก PHP
+                        showCodeError(data.message);
                     }
                 })
                 .catch(error => {
@@ -88,20 +81,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    
     if (resendCodeLink) {
         resendCodeLink.addEventListener('click', function(event) {
             event.preventDefault();
 
-            const emailToResend = emailToVerifyInput.value.trim(); // ดึงอีเมลจาก hidden input
+            const emailToResend = emailToVerifyInput.value.trim();
 
             if (emailToResend) {
-                // ส่งอีเมลไปยัง resend_code_process.php
                 fetch('resend_code_process.php', { 
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: 'email=' + encodeURIComponent(emailToResend)
                 })
                 .then(response => {
@@ -117,16 +106,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .then(data => {
                     if (data.success) {
-                        sendVerificationEmail(data.email, data.verification_code, 'template_ejr3erd', data.firstname) 
+                        sendVerificationEmail(data.email, data.verification_code, 'template_ejr3erd', data.firstname)
                             .then(() => {
                                 alert('ส่งรหัสยืนยันใหม่ไปยังอีเมลของคุณแล้ว');
-                                // ปิดการใช้งานลิงก์ชั่วคราว
                                 resendCodeLink.style.pointerEvents = 'none';
                                 resendCodeLink.style.opacity = '0.5';
                                 setTimeout(() => {
                                     resendCodeLink.style.pointerEvents = 'auto';
                                     resendCodeLink.style.opacity = '1';
-                                }, 60000); // 1 นาที
+                                }, 60000);
                             })
                             .catch(emailError => {
                                 console.error('Error sending email via EmailJS (resend):', emailError);
@@ -143,6 +131,14 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 alert('ไม่พบอีเมลผู้ใช้ กรุณากลับไปหน้าลงทะเบียนใหม่');
             }
+        });
+    }
+
+    function sendVerificationEmail(email, code, templateId, firstname) {
+        return emailjs.send("service_10mwfcr", templateId, {
+            to_email: email,
+            to_name: firstname,
+            verification_code: code
         });
     }
 });

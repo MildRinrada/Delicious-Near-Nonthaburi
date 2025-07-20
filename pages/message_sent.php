@@ -17,7 +17,7 @@
             text-align: center;
         }
         .message-container h1 {
-            color: #4CAF50; /* สีเขียวสำหรับความสำเร็จ */
+            color: #4CAF50;
             margin-bottom: 20px;
         }
         .message-container p {

@@ -1,28 +1,36 @@
 <?php
-// reset_password.php
+require_once __DIR__ . '/../vendor/autoload.php';
 
-// 1. เชื่อมต่อฐานข้อมูล
-$servername = "localhost";
-$username = "root";
-$password = "ppgdmild"; // อย่าลืมเปลี่ยนเป็นรหัสผ่านจริงของคุณ
-$dbname = "eat_near_non";
+use Dotenv\Dotenv;
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../'); 
+$dotenv->load();
 
+$host = $_ENV['DB_HOST'] ?? 'localhost';
+$user = $_ENV['DB_USER'] ?? 'root';
+$pass = $_ENV['DB_PASS'] ?? 'ppgdmild';
+$dbname = $_ENV['DB_NAME'] ?? 'eat_near_non';
+$charset = 'utf8mb4';
+
+$conn = "mysql:host=$host;dbname=$dbname;charset=$charset";
+
+// ตรวจสอบการเชื่อมต่อฐานข้อมูล
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$message = "";
-$status_class = ""; // สำหรับ CSS เช่น 'success' หรือ 'error'
+$message = "";       // เก็บข้อความสถานะแสดงผล
+$status_class = "";  // เก็บสถานะสำหรับ CSS เช่น success หรือ error
 
+// ตรวจสอบว่าได้รับข้อมูลผ่าน POST หรือไม่
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // รับข้อมูลจากฟอร์ม
     $email = $_POST['email'] ?? '';
     $token = $_POST['token'] ?? '';
     $new_password = $_POST['new_password'] ?? '';
     $confirm_new_password = $_POST['confirm_new_password'] ?? '';
 
-    // 2. ตรวจสอบข้อมูลเบื้องต้น
+    // ตรวจสอบข้อมูลเบื้องต้นว่าครบถ้วนหรือไม่ และตรวจสอบรหัสผ่านใหม่
     if (empty($email) || empty($token) || empty($new_password) || empty($confirm_new_password)) {
         $message = "ข้อมูลไม่สมบูรณ์ กรุณาลองใหม่";
         $status_class = "error";
@@ -33,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $message = "รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร";
         $status_class = "error";
     } else {
-        // 3. ตรวจสอบ Token ในฐานข้อมูลอีกครั้ง (สำคัญเพื่อความปลอดภัย)
+        // ตรวจสอบ token ในฐานข้อมูลว่าถูกต้องและไม่หมดอายุ
         $stmt = $conn->prepare("SELECT user_id, reset_token_expires_at FROM AppUser WHERE email = ? AND reset_token = ?");
         $stmt->bind_param("ss", $email, $token);
         $stmt->execute();
@@ -45,11 +53,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $current_time = time();
 
             if ($current_time < $expires_at) {
-                // Token ถูกต้องและยังไม่หมดอายุ
+                // Token ยังไม่หมดอายุ, ทำการอัปเดตรหัสผ่านใหม่ พร้อมล้าง token
                 $user_id = $user['user_id'];
-                $hashed_password = password_hash($new_password, PASSWORD_DEFAULT); // เข้ารหัสรหัสผ่าน
+                $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
 
-                // 4. อัปเดตรหัสผ่านและล้าง Token
                 $update_stmt = $conn->prepare("UPDATE users SET password = ?, reset_token = NULL, reset_token_expires_at = NULL WHERE user_id = ?");
                 $update_stmt->bind_param("si", $hashed_password, $user_id);
 
@@ -62,34 +69,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
                 $update_stmt->close();
             } else {
+                // Token หมดอายุแล้ว
                 $message = "ลิงก์รีเซ็ตรหัสผ่านหมดอายุแล้ว กรุณาส่งคำขอใหม่";
                 $status_class = "error";
             }
         } else {
+            // ไม่พบ user หรือ token ไม่ถูกต้อง
             $message = "ลิงก์รีเซ็ตรหัสผ่านไม่ถูกต้อง หรือมีการใช้งานไปแล้ว";
             $status_class = "error";
         }
         $stmt->close();
     }
 } else {
-    // เข้าถึงหน้านี้โดยตรงโดยไม่ส่ง POST
+    // หากเข้าถึงหน้านี้โดยตรง (ไม่ใช่ POST) ให้รีไดเรกต์ไปหน้าลืมรหัสผ่าน
     header("Location: forgot_pass.php");
     exit();
 }
 
+// ปิดการเชื่อมต่อฐานข้อมูล
 $conn->close();
 ?>
 
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>ผลลัพธ์รีเซ็ตรหัสผ่าน - เว็บอร่อยใกล้นนท์</title>
-    <link rel="stylesheet" href="../css/header.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="../css/footer.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="../css/login.css?v=<?php echo time(); ?>"> 
-    <link rel="stylesheet" href="../css/reset_password.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../css/header.css?v=<?php echo time(); ?>" />
+    <link rel="stylesheet" href="../css/footer.css?v=<?php echo time(); ?>" />
+    <link rel="stylesheet" href="../css/login.css?v=<?php echo time(); ?>" />
+    <link rel="stylesheet" href="../css/reset_password.css?v=<?php echo time(); ?>" />
     <style>
         .message-box {
             padding: 20px;
@@ -120,7 +130,7 @@ $conn->close();
             <div class="message-box <?php echo $status_class; ?>">
                 <?php echo $message; ?>
             </div>
-            
+
             <div class="register-link-container">
                 <?php if ($status_class == "success"): ?>
                     <p>กลับไปหน้า <a href="login.php" class="register-link">เข้าสู่ระบบ</a></p>

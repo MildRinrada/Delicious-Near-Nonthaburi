@@ -1,52 +1,54 @@
 <?php
-session_start(); // เริ่ม Session เพื่อเข้าถึงข้อมูล Session ที่มีอยู่
+require_once __DIR__ . '/../vendor/autoload.php';
 
-// เชื่อมต่อฐานข้อมูลสำหรับจัดการ remember_me_tokens
-$servername = "localhost";
-$username = "root";
-$password = "ppgdmild"; // เปลี่ยนเป็นรหัสผ่านจริงของคุณ
-$dbname = "eat_near_non";
+use Dotenv\Dotenv;
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../'); 
+$dotenv->load();
 
-// ตรวจสอบการเชื่อมต่อฐานข้อมูล
+$host = $_ENV['DB_HOST'] ?? 'localhost';
+$user = $_ENV['DB_USER'] ?? 'root';
+$pass = $_ENV['DB_PASS'] ?? 'ppgdmild';
+$dbname = $_ENV['DB_NAME'] ?? 'eat_near_non';
+$charset = 'utf8mb4';
+
+$conn = new mysqli($host, $user, $pass, $dbname);
 if ($conn->connect_error) {
-    // ในสถานการณ์จริง คุณอาจจะบันทึก error ลง log แทนที่จะแสดงให้ผู้ใช้เห็น
-    // และอาจจะยังคงทำการ logout Session แม้ database connection จะล้มเหลว
     error_log("Database connection failed for logout: " . $conn->connect_error);
-    // ไม่จำเป็นต้อง exit() ทันที เพราะเรายังต้องการล้าง session/cookies
 }
 
-// 1. ลบ Remember Me Token ออกจากฐานข้อมูล (ถ้ามี)
+// เริ่ม session ก่อนทำงานกับ session
+session_start();
+
+// ตรวจสอบ cookie remember_user
 if (isset($_COOKIE['remember_user'])) {
     $token_from_cookie = $_COOKIE['remember_user'];
-    list($selector, $validator) = explode('.', $token_from_cookie);
+    if (strpos($token_from_cookie, '.') !== false) {
+        list($selector, $validator) = explode('.', $token_from_cookie);
 
-    if (isset($conn) && $conn->ping()) { // ตรวจสอบว่าเชื่อมต่อ DB สำเร็จก่อนใช้
-        $stmt = $conn->prepare("DELETE FROM remember_me_tokens WHERE selector = ?");
-        $stmt->bind_param("s", $selector);
-        $stmt->execute();
-        $stmt->close();
+        if ($conn->ping()) {
+            $stmt = $conn->prepare("DELETE FROM remember_me_tokens WHERE selector = ?");
+            $stmt->bind_param("s", $selector);
+            $stmt->execute();
+            $stmt->close();
+        }
     }
 }
 
-// 2. ลบ Remember Me Cookie ออกจากเบราว์เซอร์
-// ตั้งเวลาหมดอายุเป็นอดีต เพื่อให้เบราว์เซอร์ลบ Cookie ทันที
+// ลบ cookie remember_user
 setcookie('remember_user', '', [
-    'expires' => time() - 3600, // หมดอายุไปแล้ว 1 ชั่วโมง
+    'expires' => time() - 3600,
     'path' => '/',
-    'httponly' => true, // ป้องกันการเข้าถึงจาก JavaScript
-    'secure' => true,  // ส่งผ่าน HTTPS เท่านั้น (แนะนำอย่างยิ่งใน production)
-    'samesite' => 'Lax' // ป้องกัน CSRF
+    'httponly' => true,
+    'secure' => true,
+    'samesite' => 'Lax'
 ]);
 
-// 3. ลบข้อมูล Session ทั้งหมด
-$_SESSION = array(); // ล้างตัวแปร Session ทั้งหมด
-
-// 4. ทำลาย Session
+// ล้าง session และทำลาย session
+$_SESSION = array();
 session_destroy();
 
-// 5. เปลี่ยนเส้นทางผู้ใช้ไปยังหน้าหลัก หรือหน้า Login
+// รีไดเรกต์กลับหน้าแรก
 header("Location: index.php");
-exit(); // สำคัญมาก: เพื่อให้แน่ใจว่าไม่มีโค้ดใดๆ ทำงานต่อหลัง redirect
+exit();
 ?>

@@ -9,7 +9,7 @@ body {
     padding: 5px 10px;
     border-radius: 5px;
     display: inline-block;
-    margin-top: 10px; 
+    margin-top: 10px;
 }
 
 .restaurant-info .status.open {
@@ -52,33 +52,33 @@ body {
 }
 
 .star-filled {
-    color: #FFC107; 
+    color: #FFC107;
 }
 
 .star-empty {
-    color: #ccc; 
+    color: #ccc;
 }
 
 .star-half {
-    color: #FFC107; 
+    color: #FFC107;
 }
 
 @media (max-width: 768px) {
-
 }
 
 .modal {
     display: none;
-    position: fixed; /* Stay in place */
-    z-index: 1000; /* Sit on top */
+    position: fixed;
+    z-index: 1000;
     left: 0;
     top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.9);
     align-items: center;
     justify-content: center;
+    padding: 20px;
 }
 
 .modal-content {
@@ -87,6 +87,7 @@ body {
     max-width: 90%;
     max-height: 90%;
     object-fit: contain;
+    border-radius: 8px;
 }
 
 .close {
@@ -98,33 +99,51 @@ body {
     font-weight: bold;
     transition: 0.3s;
     cursor: pointer;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
 }
 
 .close:hover,
 .close:focus {
     color: #bbb;
     text-decoration: none;
+}
+
+.restaurant-detail .grid img {
     cursor: pointer;
 }
 
-/* สำหรับดาวที่เติมเต็ม */
-.star-filled {
-    /* ทำให้เงาเบลอและกระจายออกไปเล็กน้อย */
-    text-shadow: 0 0 2px rgba(255, 255, 0, 0.7); /* สีเหลืองอ่อน */
+.star-rating {
+    direction: ltr;
+    font-size: 2rem;
+    cursor: pointer;
+    user-select: none;
 }
 
-/* สำหรับดาวครึ่ง (ถ้ามีการนำไปใช้และต้องการให้มีเงา) */
-.star-half {
-    text-shadow: 0 0 2px rgba(255, 255, 0, 0.7);
+.star {
+    color: #ddd;
+    transition: color 0.2s;
+    padding: 0 4px;
 }
 
-/* สำหรับดาวว่าง (ถ้าต้องการให้มีเงาเช่นกัน) */
+.star.hover,
+.star.selected {
+    color: #F8C44E;
+}
+
+.star-filled,
+.star-half,
 .star-empty {
-    /* เพิ่มเงาเล็กน้อยเพื่อให้ดูนุ่มนวลขึ้น */
-    text-shadow: 0 0 1px rgba(0, 0, 0, 0.2); /* เงาสีดำอ่อนๆ */
+    text-shadow: 0 0 2px rgba(255, 255, 0, 0.7);
+    font-weight: bold;
 }
 
-/* หากคุณต้องการปรับให้ดาวดู "หนา" ขึ้นเล็กน้อย */
-.star-filled, .star-half, .star-empty {
-    font-weight: bold; /* ทำให้ตัวอักษรหนาขึ้น */
+.star-empty {
+    text-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
 }

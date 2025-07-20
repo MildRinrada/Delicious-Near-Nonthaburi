@@ -1,34 +1,25 @@
 <?php
-session_start();
+require_once __DIR__ . '/../vendor/autoload.php';
 
-// ตรวจสอบว่าผู้ใช้ล็อกอินอยู่หรือไม่
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-    $_SESSION['error_message'] = 'กรุณาเข้าสู่ระบบเพื่อดำเนินการ.';
-    header('Location: login.php');
-    exit();
-}
+use Dotenv\Dotenv;
 
-// ตรวจสอบว่าเป็น request แบบ POST
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    $_SESSION['error_message'] = 'ไม่พบการส่งข้อมูลที่ถูกต้อง.';
-    header('Location: restaurants_list.php'); // หรือกลับไปหน้าที่เรียกมา
-    exit();
-}
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../'); 
+$dotenv->load();
 
-// --- ตั้งค่าการเชื่อมต่อฐานข้อมูล ---
-$host = 'localhost';
-$db = 'eat_near_non';
-$user = 'root';
-$pass = 'ppgdmild';
+$host = $_ENV['DB_HOST'] ?? 'localhost';
+$user = $_ENV['DB_USER'] ?? 'root';
+$pass = $_ENV['DB_PASS'] ?? 'ppgdmild';
+$dbname = $_ENV['DB_NAME'] ?? 'eat_near_non';
 $charset = 'utf8mb4';
 
-$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+$dsn = "mysql:host=$host;dbname=$dbname;charset=$charset";
 $options = [
-    PDO::ATTR_ERRMODE           => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    PDO::ATTR_EMULATE_PREPARES  => false,
+    PDO::ATTR_ERRMODE           => PDO::ERRMODE_EXCEPTION,     
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,           
+    PDO::ATTR_EMULATE_PREPARES  => false,                        
 ];
 
+// เชื่อมต่อฐานข้อมูลด้วย PDO
 try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (\PDOException $e) {
@@ -37,19 +28,20 @@ try {
     exit();
 }
 
-// รับค่าที่จำเป็น
+// รับค่าที่ส่งมาจากฟอร์ม POST
 $restaurant_id = (int)($_POST['restaurant_id'] ?? 0);
-$user_id = (int)$_SESSION['user_id'];
-$action = $_POST['action'] ?? ''; // 'add_review', 'update_review', 'delete_review'
-$review_id = (int)($_POST['review_id'] ?? 0); // สำหรับการแก้ไข/ลบ
+$user_id = (int)$_SESSION['user_id'];  // user_id จาก session (ผู้ใช้ล็อกอินแล้ว)
+$action = $_POST['action'] ?? '';      // เช่น add_review, update_review, delete_review
+$review_id = (int)($_POST['review_id'] ?? 0);  // สำหรับแก้ไขหรือลบรีวิว
 
+// ตรวจสอบ ID ร้านอาหารว่าถูกต้องหรือไม่
 if ($restaurant_id <= 0) {
     $_SESSION['error_message'] = 'ไม่พบ ID ร้านอาหารที่ถูกต้อง.';
     header('Location: restaurants_list.php');
     exit();
 }
 
-// --- ฟังก์ชันสำหรับอัปเดตคะแนนเฉลี่ยและจำนวนรีวิว ---
+// ฟังก์ชันสำหรับอัปเดตคะแนนเฉลี่ยและจำนวนรีวิวในตาราง restaurant
 function updateRestaurantRating($pdo, $restaurant_id) {
     $update_rating_sql = "
         SELECT AVG(rating) AS avg_rating, COUNT(review_id) AS review_count
@@ -61,10 +53,9 @@ function updateRestaurantRating($pdo, $restaurant_id) {
     $stmt_update_rating->execute();
     $new_ratings = $stmt_update_rating->fetch();
 
-    $avg_rating = round($new_ratings['avg_rating'], 1); // ปัดทศนิยม 1 ตำแหน่ง
+    $avg_rating = round($new_ratings['avg_rating'], 1);  // ปัดเศษทศนิยม 1 ตำแหน่ง
     $review_count = $new_ratings['review_count'];
 
-    // อัปเดตตาราง restaurant
     $update_restaurant_sql = "
         UPDATE restaurant
         SET rating_avg = :rating_avg, rating_count = :rating_count
@@ -78,15 +69,16 @@ function updateRestaurantRating($pdo, $restaurant_id) {
 }
 
 try {
-    $pdo->beginTransaction(); // เริ่มต้น Transaction
+    $pdo->beginTransaction(); // เริ่ม transaction เพื่อความปลอดภัยและความถูกต้องของข้อมูล
 
     switch ($action) {
         case 'add_review':
+            // รับค่าคะแนนและข้อความรีวิวจากฟอร์ม
             $rating = (int)($_POST['rating'] ?? 0);
             $review_text = trim($_POST['review_text'] ?? '');
-            $review_date = date('Y-m-d H:i:s');
+            $review_date = date('Y-m-d H:i:s'); // เวลาปัจจุบัน
 
-            // ตรวจสอบว่าผู้ใช้เคยรีวิวร้านนี้แล้วหรือไม่
+            // ตรวจสอบว่าผู้ใช้เคยรีวิวร้านนี้หรือยัง
             $check_sql = "SELECT COUNT(*) FROM restaurantreview WHERE restaurant_id = :restaurant_id AND user_id = :user_id";
             $check_stmt = $pdo->prepare($check_sql);
             $check_stmt->bindParam(':restaurant_id', $restaurant_id, PDO::PARAM_INT);
@@ -94,10 +86,10 @@ try {
             $check_stmt->execute();
             if ($check_stmt->fetchColumn() > 0) {
                 $_SESSION['error_message'] = 'คุณได้รีวิวร้านนี้ไปแล้ว หากต้องการแก้ไขโปรดใช้ฟอร์มแก้ไข.';
-                break; // ออกจาก switch
+                break;
             }
 
-            // ตรวจสอบความถูกต้องของข้อมูล
+            // ตรวจสอบความถูกต้องของคะแนนและข้อความ
             if ($rating < 1 || $rating > 5) {
                 $_SESSION['error_message'] = 'คะแนนรีวิวต้องอยู่ระหว่าง 1 ถึง 5 ดาว.';
                 break;
@@ -107,7 +99,7 @@ try {
                 break;
             }
 
-            // บันทึกรีวิวใหม่
+            // เพิ่มรีวิวลงฐานข้อมูล
             $insert_sql = "
                 INSERT INTO restaurantreview (restaurant_id, user_id, rating, review_date, text)
                 VALUES (:restaurant_id, :user_id, :rating, :review_date, :text);
@@ -124,7 +116,7 @@ try {
             break;
 
         case 'update_review':
-            // ต้องมี review_id และเป็นรีวิวของผู้ใช้ปัจจุบันเท่านั้น
+            // รับค่าคะแนนและข้อความรีวิวสำหรับแก้ไข
             $rating = (int)($_POST['rating'] ?? 0);
             $review_text = trim($_POST['review_text'] ?? '');
 
@@ -141,7 +133,7 @@ try {
                 break;
             }
 
-            // อัปเดตรีวิว
+            // อัปเดตรีวิวในฐานข้อมูล เฉพาะรีวิวของผู้ใช้คนปัจจุบันและร้านอาหารนี้เท่านั้น
             $update_sql = "
                 UPDATE restaurantreview
                 SET rating = :rating, review_date = :review_date, text = :text
@@ -149,7 +141,7 @@ try {
             ";
             $stmt_update = $pdo->prepare($update_sql);
             $stmt_update->bindParam(':rating', $rating, PDO::PARAM_INT);
-            $stmt_update->bindParam(':review_date', date('Y-m-d H:i:s')); // อัปเดตเวลาที่แก้ไข
+            $stmt_update->bindParam(':review_date', date('Y-m-d H:i:s'));
             $stmt_update->bindParam(':text', $review_text);
             $stmt_update->bindParam(':review_id', $review_id, PDO::PARAM_INT);
             $stmt_update->bindParam(':user_id', $user_id, PDO::PARAM_INT);
@@ -164,13 +156,12 @@ try {
             break;
 
         case 'delete_review':
-            // ต้องมี review_id และเป็นรีวิวของผู้ใช้ปัจจุบันเท่านั้น
             if ($review_id <= 0) {
                 $_SESSION['error_message'] = 'ไม่พบ ID รีวิวที่ถูกต้องสำหรับการลบ.';
                 break;
             }
 
-            // ลบรีวิว
+            // ลบรีวิวในฐานข้อมูล เฉพาะรีวิวของผู้ใช้คนปัจจุบันและร้านอาหารนี้เท่านั้น
             $delete_sql = "
                 DELETE FROM restaurantreview
                 WHERE review_id = :review_id AND user_id = :user_id AND restaurant_id = :restaurant_id;
@@ -193,17 +184,17 @@ try {
             break;
     }
 
-    // --- อัปเดต rating_avg และ rating_count เสมอหลังการดำเนินการ (เพิ่ม/แก้ไข/ลบ) ---
+    // อัปเดตคะแนนเฉลี่ยและจำนวนรีวิวในตารางร้านเสมอหลังจากดำเนินการรีวิวแล้ว
     updateRestaurantRating($pdo, $restaurant_id);
 
-    $pdo->commit(); // ยืนยัน Transaction
+    $pdo->commit();  // ยืนยัน transaction
 
 } catch (\PDOException $e) {
-    $pdo->rollBack(); // ยกเลิก Transaction หากมีข้อผิดพลาด
+    $pdo->rollBack(); // ยกเลิก transaction หากเกิดข้อผิดพลาด
     $_SESSION['error_message'] = 'เกิดข้อผิดพลาดในการดำเนินการรีวิว: ' . $e->getMessage();
 }
 
-// Redirect กลับไปหน้ารายละเอียดร้าน
+// ส่งกลับไปหน้ารายละเอียดร้านอาหาร
 header('Location: restaurant_detail.php?id=' . $restaurant_id);
 exit();
 ?>

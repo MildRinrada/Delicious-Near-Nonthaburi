@@ -1,13 +1,19 @@
 <?php
-// verify_reset_token.php
+require_once __DIR__ . '/../vendor/autoload.php';
 
-// 1. เชื่อมต่อฐานข้อมูล (ใช้ข้อมูลการเชื่อมต่อเดียวกับ forgot_pass_process.php)
-$servername = "localhost";
-$username = "root";
-$password = "ppgdmild"; // อย่าลืมเปลี่ยนเป็นรหัสผ่านจริงของคุณ
-$dbname = "eat_near_non";
+use Dotenv\Dotenv;
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../'); 
+$dotenv->load();
+
+$host = $_ENV['DB_HOST'] ?? 'localhost';
+$user = $_ENV['DB_USER'] ?? 'root';
+$pass = $_ENV['DB_PASS'] ?? 'ppgdmild';
+$dbname = $_ENV['DB_NAME'] ?? 'eat_near_non';
+$charset = 'utf8mb4';
+
+$conn = "mysql:host=$host;dbname=$dbname;charset=$charset";
+
 
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);

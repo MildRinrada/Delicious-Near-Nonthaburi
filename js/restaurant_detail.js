@@ -1,60 +1,46 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const images = document.querySelectorAll('.restaurant-info .grid img');
+    const images = document.querySelectorAll('.restaurant-detail .grid img[data-full-src]');
     let lightboxOverlay = null;
-    let lightboxContent = null;
 
     images.forEach(image => {
         image.addEventListener('click', function() {
             const fullSrc = this.getAttribute('data-full-src');
             if (!fullSrc) return;
 
-            // ตรวจสอบว่ามี lightbox เปิดอยู่แล้วหรือไม่ เพื่อป้องกันการเปิดซ้อน
             if (lightboxOverlay) {
                 closeLightbox();
             }
 
-            // 1. สร้าง Overlay
+            // สร้าง overlay สำหรับแสดงภาพขนาดเต็ม
             lightboxOverlay = document.createElement('div');
-            lightboxOverlay.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4';
-            lightboxOverlay.style.cursor = 'zoom-out'; // เปลี่ยน cursor เป็น zoom-out เมื่ออยู่บน overlay
+            lightboxOverlay.className = 'modal';
+            lightboxOverlay.style.display = 'flex';
+            lightboxOverlay.style.cursor = 'zoom-out';
 
-            // 2. สร้าง Content Container
-            lightboxContent = document.createElement('div');
-            // สำคัญ: เอา 'overflow-hidden' ออกจาก lightboxContent เพื่อให้รูปภาพจัดการ overflow ของตัวเอง
-            // เพิ่ม 'p-2' หรือ 'p-4' ที่นี่ ถ้าอยากให้มี padding ระหว่างรูปกับขอบป๊อปอัพ
-            lightboxContent.className = 'relative flex-shrink-0 bg-white rounded-lg shadow-xl'; // ปรับตรงนี้
-
-            // 3. สร้าง Image Element
+            // สร้าง img element สำหรับรูปภาพขนาดเต็ม
             const imgElement = document.createElement('img');
             imgElement.src = fullSrc;
-            imgElement.alt = this.alt;
-            // object-contain คือการย่อรูปให้พอดีกับกรอบโดยไม่ถูกตัด
-            // block w-auto h-auto จะบอกให้รูปภาพใช้ขนาดธรรมชาติของมัน
-            // max-w-[80vw] max-h-[80vh] คือการจำกัดขนาดสูงสุดของ "รูปภาพ" โดยตรง
-            imgElement.className = 'block object-contain max-w-[80vw] max-h-[80vh] mx-auto my-auto rounded-lg'; // **ปรับตรงนี้**
+            imgElement.alt = this.alt || 'Restaurant image';
+            imgElement.className = 'modal-content';
 
-            // 4. สร้าง Close Button
-            const closeButton = document.createElement('button');
-            closeButton.innerHTML = '&times;'; // สัญลักษณ์ X
-            closeButton.className = 'absolute top-2 right-2 text-white text-4xl font-bold p-2 leading-none hover:text-gray-300 focus:outline-none';
-            closeButton.style.textShadow = '0 0 5px rgba(0,0,0,0.8)'; // เพิ่มเงาเพื่อให้เห็นชัดเจน
+            // สร้างปุ่มปิด lightbox
+            const closeButton = document.createElement('span');
+            closeButton.innerHTML = '&times;';
+            closeButton.className = 'close';
+            closeButton.style.textShadow = '0 0 5px rgba(0,0,0,0.8)';
 
-            // 5. ประกอบร่างและเพิ่มเข้า DOM
-            lightboxContent.appendChild(imgElement);
-            lightboxContent.appendChild(closeButton);
-            lightboxOverlay.appendChild(lightboxContent);
+            // เพิ่มปุ่มและรูปภาพลงใน overlay และเพิ่มเข้า body
+            lightboxOverlay.appendChild(closeButton);
+            lightboxOverlay.appendChild(imgElement);
             document.body.appendChild(lightboxOverlay);
 
-            // 6. เพิ่ม Event Listeners สำหรับปิด
+            // event ปิด lightbox เมื่อคลิกปุ่ม หรือคลิกพื้นที่ว่างรอบภาพ
             closeButton.addEventListener('click', closeLightbox);
-            lightboxOverlay.addEventListener('click', function(e) {
-                // ปิดเมื่อคลิกที่ Overlay เท่านั้น ไม่ใช่ที่รูปภาพภายใน
-                if (e.target === lightboxOverlay) {
-                    closeLightbox();
-                }
+            lightboxOverlay.addEventListener('click', e => {
+                if (e.target === lightboxOverlay) closeLightbox();
             });
 
-            // ป้องกันการเลื่อนหน้าเมื่อ Lightbox เปิด
+            // ป้องกันการเลื่อนหน้าเมื่อ lightbox เปิด
             document.body.style.overflow = 'hidden';
         });
     });
@@ -63,33 +49,45 @@ document.addEventListener('DOMContentLoaded', function() {
         if (lightboxOverlay) {
             lightboxOverlay.remove();
             lightboxOverlay = null;
-            lightboxContent = null;
-            document.body.style.overflow = ''; // คืนค่าการเลื่อนหน้า
+            document.body.style.overflow = '';
         }
     }
 });
 
-        // JavaScript for image modal
-        document.addEventListener('DOMContentLoaded', () => {
-            const modal = document.getElementById('imageModal');
-            const modalImage = document.getElementById('modalImage');
-            const closeBtn = document.getElementsByClassName('close')[0];
-            const images = document.querySelectorAll('.restaurant-detail .grid img');
+document.addEventListener('DOMContentLoaded', () => {
+  const stars = document.querySelectorAll('#star-rating .star');
+  const ratingInput = document.getElementById('rating');
 
-            images.forEach(img => {
-                img.addEventListener('click', function() {
-                    modal.style.display = 'flex';
-                    modalImage.src = this.getAttribute('data-full-src');
-                });
-            });
+  // แสดงดาวตามค่าที่เลือกไว้
+  function setStars(rating) {
+    stars.forEach(star => {
+      const starValue = parseInt(star.dataset.value);
+      if (starValue <= rating) star.classList.add('selected');
+      else star.classList.remove('selected');
+    });
+  }
 
-            closeBtn.addEventListener('click', () => {
-                modal.style.display = 'none';
-            });
+  if (ratingInput.value) setStars(parseInt(ratingInput.value));
 
-            modal.addEventListener('click', (event) => {
-                if (event.target === modal) {
-                    modal.style.display = 'none';
-                }
-            });
-        });
+  // event จับเมาส์ hover เพื่อไฮไลต์ดาว
+  stars.forEach(star => {
+    star.addEventListener('mouseover', () => {
+      const hoverValue = parseInt(star.dataset.value);
+      stars.forEach(s => {
+        if (parseInt(s.dataset.value) <= hoverValue) s.classList.add('hover');
+        else s.classList.remove('hover');
+      });
+    });
+
+    star.addEventListener('mouseout', () => {
+      stars.forEach(s => s.classList.remove('hover'));
+    });
+
+    // event คลิกเลือกคะแนนและเก็บค่าใน input hidden
+    star.addEventListener('click', () => {
+      const selectedValue = parseInt(star.dataset.value);
+      ratingInput.value = selectedValue;
+      setStars(selectedValue);
+    });
+  });
+});

@@ -1,18 +1,6 @@
 <?php
-// verify_email.php
-
 // ดึงค่าอีเมลจาก Query String
 $display_email = isset($_GET['email']) ? htmlspecialchars($_GET['email']) : 'your.email@example.com';
-
-// หากต้องการใช้ Session (ปลอดภัยกว่า)
-// session_start(); 
-// if (isset($_SESSION['registered_email'])) {
-//     $display_email = htmlspecialchars($_SESSION['registered_email']);
-//     unset($_SESSION['registered_email']); // ลบอีเมลออกจาก session หลังใช้งาน
-// } else {
-//     $display_email = isset($_GET['email']) ? htmlspecialchars($_GET['email']) : 'your.email@example.com';
-// }
-
 ?>
 
 <!DOCTYPE html>

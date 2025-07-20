@@ -158,9 +158,7 @@
     <script type="text/javascript" src="https://cdn.emailjs.com/sdk/2.3.2/email.min.js"></script>
     <script type="text/javascript">
         (function(){
-            // YOUR_USER_ID คือ Public Key ของ EmailJS ของคุณ
-            // ใช้ User ID เดียวกันกับที่คุณใช้ใน verify_email.php
-            emailjs.init("QOtzQR-DwANTtEMz9"); // <-- ใส่ Public Key ของคุณตรงนี้
+            emailjs.init("QOtzQR-DwANTtEMz9");
         })();
     </script>
     <script src="../js/common.js?v=<?php echo time(); ?>"></script>

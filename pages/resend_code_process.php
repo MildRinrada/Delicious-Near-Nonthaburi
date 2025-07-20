@@ -1,38 +1,39 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Dotenv\Dotenv;
+
+// ปิด output อื่นที่อาจหลุดออกมา
+ob_start();
+
+// ตั้งค่า Content-Type สำหรับ JSON
+header('Content-Type: application/json');
+
+// แนะนำให้ปิด error display (เพื่อไม่ให้หลุดออกมาใน response)
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
-// โค้ดส่วนที่เหลือของคุณ
-?>
 
-<?php
-// resend_code_process.php
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
 
-// ไม่ต้องใช้ namespace สำหรับ PHPMailer อีกต่อไป
-// ไม่ต้อง include PHPMailer classes อีกต่อไป
+$host = $_ENV['DB_HOST'] ?? 'localhost';
+$user = $_ENV['DB_USER'] ?? 'root';
+$pass = $_ENV['DB_PASS'] ?? 'ppgdmild';
+$dbname = $_ENV['DB_NAME'] ?? 'eat_near_non';
+$charset = 'utf8mb4';
 
-header('Content-Type: application/json'); // บอกเบราว์เซอร์ว่าเราจะส่ง JSON กลับไป
+$conn = new mysqli($host, $user, $pass, $dbname);
+$conn->set_charset("utf8mb4");
 
-// 1. เชื่อมต่อฐานข้อมูล
-$servername = "localhost";
-$username = "root"; // เปลี่ยนเป็น username ฐานข้อมูลของคุณ
-$password = "ppgdmild"; // เปลี่ยนเป็น password ฐานข้อมูลของคุณ
-$dbname = "eat_near_non"; // เปลี่ยนเป็นชื่อฐานข้อมูลของคุณ
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// ตรวจสอบ Connection
 if ($conn->connect_error) {
     echo json_encode(['success' => false, 'message' => 'Database connection failed: ' . $conn->connect_error]);
     exit();
 }
-$conn->set_charset("utf8mb4");
 
-// ตรวจสอบว่า request มาจาก method POST และมีข้อมูล email ส่งมาหรือไม่
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email'])) {
     $user_email = trim($_POST['email']);
 
-    // 2. ค้นหาผู้ใช้จากอีเมล
     $stmt = $conn->prepare("SELECT user_id, email_verified, code_expiry FROM AppUser WHERE email = ?");
     if (!$stmt) {
         echo json_encode(['success' => false, 'message' => 'Prepare statement failed: ' . $conn->error]);
@@ -45,7 +46,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email'])) {
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
 
-        // 3. ตรวจสอบสถานะการยืนยันอีเมล
         if ($user['email_verified'] == 1) {
             echo json_encode(['success' => false, 'message' => 'อีเมลนี้ได้รับการยืนยันแล้ว ไม่จำเป็นต้องส่งรหัสใหม่']);
             $stmt->close();
@@ -53,24 +53,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email'])) {
             exit();
         }
 
-        // ตรวจสอบว่าสามารถส่งรหัสซ้ำได้หรือไม่ (ยังไม่ได้ implement ในโค้ดตัวอย่าง)
-        // if (isset($user['last_resend_timestamp'])) { // สมมติว่ามีคอลัมน์นี้
-        //     $last_resend_time = new DateTime($user['last_resend_timestamp']);
-        //     $current_time = new DateTime();
-        //     $interval = $current_time->getTimestamp() - $last_resend_time->getTimestamp();
-        //     if ($interval < 60) { // 60 วินาที
-        //         echo json_encode(['success' => false, 'message' => 'กรุณารอสักครู่ก่อนส่งรหัสอีกครั้ง']);
-        //         $stmt->close();
-        //         $conn->close();
-        //         exit();
-        //     }
-        // }
-
-        // 4. สร้างรหัสยืนยันใหม่และเวลาหมดอายุ
         $new_verification_code = rand(100000, 999999);
-        $new_code_expiry = date('Y-m-d H:i:s', strtotime('+30 minutes')); // หมดอายุใน 30 นาที
+        $new_code_expiry = date('Y-m-d H:i:s', strtotime('+30 minutes'));
 
-        // 5. อัปเดตฐานข้อมูลด้วยรหัสใหม่
         $update_stmt = $conn->prepare("UPDATE AppUser SET verification_code = ?, code_expiry = ? WHERE user_id = ?");
         if (!$update_stmt) {
             echo json_encode(['success' => false, 'message' => 'Prepare update statement failed: ' . $conn->error]);
@@ -79,15 +64,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email'])) {
         $update_stmt->bind_param("ssi", $new_verification_code, $new_code_expiry, $user['user_id']);
 
         if ($update_stmt->execute()) {
-            // **ส่วนที่เปลี่ยน: ส่ง JSON Response กลับไปให้ JavaScript**
             echo json_encode([
                 'success' => true,
                 'message' => 'รหัสยืนยันใหม่ถูกสร้างและบันทึกแล้ว',
-                'email' => $user_email, // ส่งอีเมลกลับไป
-                'verification_code' => $new_verification_code // ส่งรหัสยืนยันใหม่กลับไป
+                'email' => $user_email,
+                'verification_code' => $new_verification_code
             ]);
-            exit(); // หยุดการทำงานของ PHP
-            // --------------------------------------------------------------------
+            exit();
         } else {
             echo json_encode(['success' => false, 'message' => 'ไม่สามารถอัปเดตรหัสยืนยันในฐานข้อมูลได้: ' . $conn->error]);
         }
@@ -103,4 +86,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email'])) {
 }
 
 $conn->close();
+ob_end_flush();
 ?>

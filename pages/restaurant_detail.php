@@ -5,34 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>รายละเอียดร้านอาหาร - อร่อยใกล้นนท์</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @tailwind base;
-        @tailwind components;
-        @tailwind utilities;
-    </style>
+
     <link rel="stylesheet" href="../css/header.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../css/footer.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../css/restaurant_detail.css?v=<?php echo time(); ?>">
 </head>
-<body class="antialiased text-gray-800">
+<body class="antialiased bg-background-soft text-primary">
     <?php
-    session_start(); // ต้องอยู่ก่อน include ใดๆ ที่จะใช้ $_SESSION
+    session_start();
     if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
         include('components/dynamic_header.php');
     } else {
         include('components/header.html');
     }
     ?>
-    <div class="container w-[1000px] mx-auto my-8 p-6">
+    <div class="container max-w-6xl mx-auto my-8 p-4 md:p-6 lg:p-8">
         <?php
-        // restaurant_detail.php
 
-        // --- ตั้งค่าการเชื่อมต่อฐานข้อมูล ---
-        $host = 'localhost';
-        $db = 'eat_near_non';
-        $user = 'root';
-        $pass = 'ppgdmild';
-        $charset = 'utf8mb4';
+        require __DIR__ . '/../vendor/autoload.php';
+
+        // โหลด dotenv
+        $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..'); 
+        $dotenv->load();
+
+        // ดึงค่าจาก Environment Variables
+        $host = $_ENV['DB_HOST'];
+        $db = $_ENV['DB_DATABASE'];
+        $user = $_ENV['DB_USERNAME'];
+        $pass = $_ENV['DB_PASSWORD'];
+        $charset = $_ENV['DB_CHARSET'];
 
         $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
         $options = [
@@ -44,29 +45,26 @@
         try {
             $pdo = new PDO($dsn, $user, $pass, $options);
         } catch (\PDOException $e) {
-            echo '<p class="error-message">ไม่สามารถเชื่อมต่อฐานข้อมูลได้: ' . $e->getMessage() . '</p>';
+            echo '<p class="error-message text-red-600 bg-red-100 p-4 rounded-md mb-4">ไม่สามารถเชื่อมต่อฐานข้อมูลได้: ' . $e->getMessage() . '</p>';
             exit();
         }
 
-        // --- รับ restaurant_id จาก URL ---
+        // รับ restaurant_id จาก URL
         $restaurant_id = $_GET['id'] ?? null;
 
         if (!$restaurant_id || !is_numeric($restaurant_id)) {
-            echo '<p class="error-message">ไม่พบ ID ร้านอาหารที่ถูกต้อง.</p>';
-            echo '<a href="restaurants_list.php" class="back-button">กลับไปหน้ารายการร้านอาหาร</a>';
+            echo '<p class="error-message text-red-600 bg-red-100 p-4 rounded-md mb-4">ไม่พบ ID ร้านอาหารที่ถูกต้อง.</p>';
+            echo '<a href="restaurants_list.php" class="back-button inline-block mt-8 bg-accent hover:bg-accent/80 text-text-light font-bold py-2 px-4 rounded transition duration-200 shadow-md">กลับไปหน้ารายการร้านอาหาร</a>';
             exit();
         }
 
-        // --- คำนวณวันและเวลาปัจจุบันสำหรับสถานะเปิด/ปิด ---
-        // date('w') ให้ค่า 0 (อาทิตย์) ถึง 6 (เสาร์)
-        // เราจะปรับให้สอดคล้องกับฐานข้อมูลที่อาจใช้ 1 (จันทร์) ถึง 7 (อาทิตย์)
         $current_day_of_week = date('w');
-        if ($current_day_of_week == 0) { // ถ้าเป็นวันอาทิตย์ (ค่า 0)
-            $current_day_of_week = 7; // เปลี่ยนเป็น 7 เพื่อให้ตรงกับ DB
+        if ($current_day_of_week == 0) {
+            $current_day_of_week = 7;
         }
-        $current_time = date('H:i:s');    // เวลาปัจจุบัน เช่น "14:30:00"
+        $current_time = date('H:i:s');   
 
-        // --- ดึงข้อมูลร้านอาหารหลัก ---
+        // ดึงข้อมูลร้านอาหารหลัก ---
         $sql = "
             SELECT
                 r.restaurant_id,
@@ -113,7 +111,7 @@
             $stmt->execute();
             $restaurant = $stmt->fetch();
 
-            // --- ดึงข้อมูลเวลาเปิด-ปิดทั้งหมดสำหรับทุกวัน ---
+            // ดึงข้อมูลเวลาเปิด-ปิดทั้งหมดสำหรับทุกวัน ---
             $opening_hours_sql = "
                 SELECT day_of_week, open_time, close_time, is_closed
                 FROM restaurant_opening_hours
@@ -125,10 +123,9 @@
             $stmt_hours->execute();
             $all_opening_hours = $stmt_hours->fetchAll();
 
-            // --- ประมวลผลเวลาเปิด-ปิดสำหรับสถานะปัจจุบัน ---
+            // ประมวลผลเวลาเปิด-ปิดสำหรับสถานะปัจจุบัน
             $current_day_hours = null;
             foreach ($all_opening_hours as $oh) {
-                // ตรวจสอบว่า day_of_week จาก DB ตรงกับ $current_day_of_week ที่ปรับแล้ว (1-7)
                 if ($oh['day_of_week'] == $current_day_of_week) {
                     $current_day_hours = $oh;
                     break;
@@ -136,27 +133,26 @@
             }
 
             if ($restaurant) {
-                // --- ประมวลผล URL รูปภาพ (เหมือนเดิม) ---
                 $images = [];
                 if (!empty($restaurant['image_urls'])) {
                     $images = explode(',', $restaurant['image_urls']);
                     $images = array_map('trim', $images);
                 }
 
-                // --- เรียกใช้ไฟล์ที่สร้างใหม่เพื่อจัดการเวลาเปิด-ปิดและสถานะ ---
-                // ตรวจสอบให้แน่ใจว่า path ถูกต้อง เช่น 'includes/process_opening_hours.php'
                 include 'process_opening_hours.php';
         ?>
         <div class="restaurant-detail">
-            <div class="mb-6 p-8 bg-gray-50 rounded-lg shadow-lg">
+            <div class="mb-8 p-6 sm:p-8 bg-white rounded-xl shadow-xl border border-gray-100">
                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                     <div class="flex-grow">
-                        <h2 class="text-4xl font-extrabold text-[#4F2B14] mb-2 leading-tight">
+                        <h2 class="text-4xl lg:text-5xl font-extrabold text-[#4F2B14] border-b-4 border-secondary pb-2 relative inline-block group max-w-[700px] overflow-hidden line-clamp-2">
                             <?php echo htmlspecialchars($restaurant['restaurant_name']); ?>
-                        </h2>
+                            <span class="absolute bottom-0 left-0 w-full h-[4px] bg-accent-hover transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out"></span>
+                            </h2>
 
-                        <?php if (!empty($restaurant['food_types'])): ?>
-                            <div class="mt-2 mb-4 flex flex-wrap items-center">
+
+                       <?php if (!empty($restaurant['food_types'])): ?>
+                            <div class="mt-4 mb-4 flex flex-wrap items-center">
                                 <?php
                                 $food_types_array = explode(',', $restaurant['food_types']);
                                 $food_types_array = array_map('trim', $food_types_array);
@@ -164,8 +160,8 @@
                                 foreach ($food_types_array as $food_type):
                                     if (!empty($food_type)):
                                 ?>
-                                        <span class="inline-block px-3 py-1 rounded-full text-sm font-medium mr-2 mb-2"
-                                              style="background-color: #4F2B14; color: #FFEFC0;">
+                                        <span class="inline-block px-4 py-1.5 rounded-full text-sm font-medium mr-2 mb-2
+                                            bg-[#4F2B14] text-[#F8C44E] hover:bg-opacity-80 transition-colors duration-200">
                                             <?php echo htmlspecialchars($food_type); ?>
                                         </span>
                                 <?php
@@ -206,7 +202,7 @@
                             <?php if (!empty($status_icon_path)): ?>
                                 <img src="<?php echo htmlspecialchars($status_icon_path); ?>" alt="<?php echo htmlspecialchars($status); ?>" class="w-5 h-5 mr-2">
                             <?php endif; ?>
-                            <span class="<?php echo $status_class; ?> text-base">
+                            <span class="<?php echo $status_class; ?> text-base font-bold">
                                 <?php echo htmlspecialchars($status); ?>
                             </span>
                         </p>
@@ -214,16 +210,21 @@
                 </div>
             </div>
 
-            <div class="mb-6 p-8 bg-gray-50 rounded-lg">
+            <div class="mb-8 p-6 sm:p-8 bg-white rounded-xl shadow-lg border border-gray-100">
                 <?php if (!empty($images)): ?>
                     <div class="mb-6">
                         <h3 class="text-2xl font-bold mb-4 text-gray-700">รูปภาพ</h3>
                         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             <?php foreach ($images as $img_url): ?>
-                                <img src="<?php echo htmlspecialchars($img_url); ?>"
+                                <img
+                                    src="<?php echo htmlspecialchars($img_url); ?>"
+                                    data-full-src="<?php echo htmlspecialchars($img_url); ?>"
                                     alt="รูปภาพ <?php echo htmlspecialchars($restaurant['restaurant_name']); ?>"
-                                    class="w-full h-36 object-cover rounded-lg shadow-md cursor-pointer hover:scale-105 transition-transform duration-200"
-                                    data-full-src="<?php echo htmlspecialchars($img_url); ?>">
+                                    class="w-full h-36 object-cover rounded-lg shadow-md cursor-pointer transition-transform duration-200
+                                        hover:scale-105 hover:shadow-xl
+                                        ring-2 ring-transparent hover:ring-2 hover:ring-yellow-500"
+                                />
+
                             <?php endforeach; ?>
                         </div>
                     </div>
@@ -231,22 +232,22 @@
             </div>
 
             <div class="flex flex-col md:flex-row gap-8 items-start">
-                <div class="mb-6 p-8 h-auto bg-gray-50 rounded-lg flex-1">
+                <div class="mb-6 p-6 sm:p-8 h-auto bg-white rounded-xl shadow-lg border border-gray-100 flex-1">
                     <h3 class="text-2xl font-bold mb-3 text-gray-700">ข้อมูลร้านอาหาร</h3>
-                    <strong>เวลาเปิดร้าน</strong>
+                    <p class="font-bold text-lg mb-2">เวลาเปิดร้าน</p>
                     <?php if (!empty($formatted_opening_hours)): ?>
                         <?php foreach ($formatted_opening_hours as $line): ?>
-                            <br><?php echo htmlspecialchars($line); ?>
+                            <p class="text-gray-700 text-base leading-relaxed"><?php echo htmlspecialchars($line); ?></p>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <p class="text-gray-600">ไม่มีข้อมูลเวลาเปิด-ปิด</p>
+                        <p class="text-gray-600 text-base">ไม่มีข้อมูลเวลาเปิด-ปิด</p>
                     <?php endif; ?>
 
-                    <br><br>
+                    <br>
 
-                    <p class="font-bold">ข้อมูลติดต่อ</p>
+                    <p class="font-bold text-lg mb-2">ข้อมูลติดต่อ</p>
 
-                    <p class="mb-2 text-gray-700">
+                    <p class="mb-2 text-gray-700 text-base">
                         <strong>ที่อยู่:</strong>
                         <?php
                         $full_address = [];
@@ -258,47 +259,53 @@
                         echo htmlspecialchars(implode(', ', $full_address) ?: 'ไม่ระบุ');
                         ?>
                     </p>
-                    <p class="mb-2 text-gray-700"><strong>เบอร์โทร:</strong> <?php echo htmlspecialchars($restaurant['phone'] ?? 'ไม่ระบุ'); ?></p>
+                    <p class="mb-2 text-gray-700 text-base"><strong>เบอร์โทร:</strong> <?php echo htmlspecialchars($restaurant['phone'] ?? 'ไม่ระบุ'); ?></p>
                     <?php if (!empty($restaurant['website'] ?? '')): ?>
-                        <p class="mb-2 text-gray-700"><strong>เว็บไซต์:</strong> <a href="<?php echo htmlspecialchars($restaurant['website']); ?>" target="_blank" class="text-blue-600 hover:underline"><?php echo htmlspecialchars($restaurant['website']); ?></a></p>
+                        <p class="mb-2 text-gray-700 text-base"><strong>เว็บไซต์:</strong> <a href="<?php echo htmlspecialchars($restaurant['website']); ?>" target="_blank" class="text-blue-600 hover:underline"><?php echo htmlspecialchars($restaurant['website']); ?></a></p>
                     <?php endif; ?>
                 </div>
-                <div class="mb-6 p-8 h-[500px] bg-gray-50 rounded-lg flex-1">
+                <div class="mb-6 p-6 sm:p-8 h-auto bg-white rounded-xl shadow-lg border border-gray-100 flex-1">
                     <?php if (!empty($restaurant['latitude']) && !empty($restaurant['longitude'])): ?>
-                        <div class="map-section h-[300px] w-full aspect-w-16 aspect-h-9 md:aspect-w-1 md:aspect-h-1">
+                        <div class="map-section w-full">
                             <h3 class="text-2xl font-bold mb-3 text-gray-700">แผนที่</h3>
-                            <iframe
-                                width="100%"
-                                height="100%"
-                                frameborder="0" style="border:0"
-                                src="https://www.openstreetmap.org/export/embed.html?bbox=<?php
-                                    // Define a larger offset for the bounding box to ensure visibility.
-                                    // These values (0.01) usually provide a good initial view for a single marker.
-                                    $lon_offset = 0.01;
-                                    $lat_offset = 0.01;
+                            <div class="aspect-w-16 aspect-h-9 md:aspect-w-1 md:aspect-h-1 md:h-[200px] w-full">
+                                <iframe
+                                    width="100%"
+                                    height="100%"
+                                    frameborder="0" style="border:0"
+                                    src="https://www.openstreetmap.org/export/embed.html?bbox=<?php
 
-                                    // Calculate the bounding box
-                                    $min_lon = $restaurant['longitude'] - $lon_offset;
-                                    $min_lat = $restaurant['latitude'] - $lat_offset;
-                                    $max_lon = $restaurant['longitude'] + $lon_offset;
-                                    $max_lat = $restaurant['latitude'] + $lat_offset;
+                                        $lon_offset = 0.01;
+                                        $lat_offset = 0.01;
 
-                                    echo htmlspecialchars($min_lon) . '%2C' .
-                                        htmlspecialchars($min_lat) . '%2C' .
-                                        htmlspecialchars($max_lon) . '%2C' .
-                                        htmlspecialchars($max_lat);
-                                ?>&layer=mapnik&marker=<?php
-                                    echo htmlspecialchars($restaurant['latitude']) . '%2C' .
-                                        htmlspecialchars($restaurant['longitude']);
-                                ?>"
-                                allowfullscreen=""
-                                aria-hidden="false"
-                                tabindex="0"
-                                class="rounded-lg shadow-md">
-                            </iframe>
+                                        $min_lon = $restaurant['longitude'] - $lon_offset;
+                                        $min_lat = $restaurant['latitude'] - $lat_offset;
+                                        $max_lon = $restaurant['longitude'] + $lon_offset;
+                                        $max_lat = $restaurant['latitude'] + $lat_offset;
+
+                                        echo htmlspecialchars($min_lon) . '%2C' .
+                                            htmlspecialchars($min_lat) . '%2C' .
+                                            htmlspecialchars($max_lon) . '%2C' .
+                                            htmlspecialchars($max_lat);
+                                    ?>&layer=mapnik&marker=<?php
+                                        echo htmlspecialchars($restaurant['latitude']) . '%2C' .
+                                            htmlspecialchars($restaurant['longitude']);
+                                    ?>"
+                                    allowfullscreen=""
+                                    aria-hidden="false"
+                                    tabindex="0"
+                                    class="rounded-lg shadow-md">
+                                </iframe>
+                            </div>
                             <p class="text-sm text-gray-500 mt-2">แผนที่จาก OpenStreetMap</p>
-                            <p class="mt-2">
-                                <a href="https://www.openstreetmap.org/?mlat=<?php echo htmlspecialchars($restaurant['latitude']); ?>&mlon=<?php echo htmlspecialchars($restaurant['longitude']); ?>#map=17/<?php echo htmlspecialchars($restaurant['latitude']); ?>/<?php echo htmlspecialchars($restaurant['longitude']); ?>" target="_blank" class="map-link inline-block px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition duration-200">
+                            <p class="mt-4">
+                                <a href="https://www.openstreetmap.org/?mlat=<?php echo htmlspecialchars($restaurant['latitude']); ?>&mlon=<?php echo htmlspecialchars($restaurant['longitude']); ?>#map=17/<?php echo htmlspecialchars($restaurant['latitude']); ?>/<?php htmlspecialchars($restaurant['longitude']); ?>"
+                                target="_blank"
+                                class="map-link inline-block px-5 py-2 rounded-full font-bold text-base shadow-lg transform transition-all duration-300
+                                        bg-[#4F2B14] text-[#F8C44E]
+                                        hover:scale-105 hover:shadow-xl hover:bg-[#6A3F1F]
+                                        focus:outline-none focus:ring-4 focus:ring-[#4F2B14] focus:ring-opacity-50
+                                        active:scale-95 active:bg-[#3B200F]">
                                     ดูแผนที่ขนาดใหญ่บน OpenStreetMap
                                 </a>
                             </p>
@@ -307,10 +314,10 @@
                 </div>
             </div>
 
-            <hr class="my-8 border-gray-300">
+            <hr class="my-10 border-gray-300">
 
             <div class="reviews-section">
-                <h3 class="text-2xl font-bold mb-4 text-gray-700">ความคิดเห็นและรีวิว</h3>
+                <h3 class="text-3xl font-bold mb-6 text-gray-800">ความคิดเห็นและรีวิว</h3>
 
                 <?php
                 // ดึงข้อมูลรีวิวของผู้ใช้ปัจจุบัน (ถ้ามี)
@@ -346,17 +353,17 @@
 
                 // แสดงข้อความ Success/Error จาก Session
                 if (isset($_SESSION['success_message'])) {
-                    echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">' . htmlspecialchars($_SESSION['success_message']) . '</div>';
+                    echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4 shadow-sm" role="alert">' . htmlspecialchars($_SESSION['success_message']) . '</div>';
                     unset($_SESSION['success_message']);
                 }
                 if (isset($_SESSION['error_message'])) {
-                    echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">' . htmlspecialchars($_SESSION['error_message']) . '</div>';
+                    echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 shadow-sm" role="alert">' . htmlspecialchars($_SESSION['error_message']) . '</div>';
                     unset($_SESSION['error_message']);
                 }
                 ?>
 
-                <div class="add-review-form mt-4 p-6 bg-gray-50 rounded-lg shadow-md border border-gray-200">
-                    <h4 class="text-xl font-bold mb-4 text-gray-800">
+                <div class="add-review-form mt-6 p-6 bg-white rounded-xl shadow-lg border border-gray-100">
+                    <h4 class="text-2xl font-bold mb-4 text-gray-800">
                         <?php echo ($user_has_reviewed) ? 'แก้ไขรีวิวของคุณ' : 'เขียนรีวิวของคุณ'; ?>
                     </h4>
                     <?php if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true): ?>
@@ -371,45 +378,53 @@
                             <?php endif; ?>
 
                             <div class="mb-4">
-                                <label for="rating" class="block text-gray-700 text-sm font-bold mb-2">คะแนน (1-5 ดาว):</label>
-                                <select name="rating" id="rating" class="shadow border border-gray-300 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
-                                    <option value="">เลือกคะแนน</option>
-                                    <option value="5" <?php echo ($user_has_reviewed && $user_review['rating'] == 5) ? 'selected' : ''; ?>>5 ดาว - ยอดเยี่ยม</option>
-                                    <option value="4" <?php echo ($user_has_reviewed && $user_review['rating'] == 4) ? 'selected' : ''; ?>>4 ดาว - ดีมาก</option>
-                                    <option value="3" <?php echo ($user_has_reviewed && $user_review['rating'] == 3) ? 'selected' : ''; ?>>3 ดาว - ปานกลาง</option>
-                                    <option value="2" <?php echo ($user_has_reviewed && $user_review['rating'] == 2) ? 'selected' : ''; ?>>2 ดาว - ไม่ค่อยดี</option>
-                                    <option value="1" <?php echo ($user_has_reviewed && $user_review['rating'] == 1) ? 'selected' : ''; ?>>1 ดาว - แย่มาก</option>
-                                </select>
+                                <label class="block text-gray-700 text-base font-bold mb-2">คะแนน (1-5 ดาว):</label>
+                                <div id="star-rating" class="star-rating">
+                                    <span data-value="5" class="star">&#9733;</span>
+                                    <span data-value="4" class="star">&#9733;</span>
+                                    <span data-value="3" class="star">&#9733;</span>
+                                    <span data-value="2" class="star">&#9733;</span>
+                                    <span data-value="1" class="star">&#9733;</span>
+                                </div>
+                                <input type="hidden" name="rating" id="rating" value="<?php echo $user_has_reviewed ? $user_review['rating'] : ''; ?>" required>
                             </div>
                             <div class="mb-4">
-                                <label for="review_text" class="block text-gray-700 text-sm font-bold mb-2">ความคิดเห็นของคุณ:</label>
-                                <textarea name="review_text" id="review_text" rows="5" class="shadow appearance-none border border-gray-300 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="เขียนความคิดเห็นของคุณที่นี่..." required><?php echo ($user_has_reviewed) ? htmlspecialchars($user_review['text']) : ''; ?></textarea>
+                                <label for="review_text" class="block text-gray-700 text-base font-bold mb-2">ความคิดเห็นของคุณ:</label>
+                                <textarea name="review_text" id="review_text" rows="5" class="shadow-sm appearance-none border border-gray-300 rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-secondary focus:border-secondary transition-all duration-200" placeholder="เขียนความคิดเห็นของคุณที่นี่..." required><?php echo ($user_has_reviewed) ? htmlspecialchars($user_review['text']) : ''; ?></textarea>
                             </div>
-                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            <button type="submit"
+                                    class="bg-[#4F2B14] text-[#F8C44E] font-bold py-2 px-4 rounded-md
+                                        focus:outline-none focus:ring-2 focus:ring-[#4F2B14] focus:ring-offset-2 focus:ring-opacity-75
+                                        transform transition-all duration-300 shadow-md
+                                        hover:scale-105 hover:shadow-lg hover:bg-[#6A3F1F] active:scale-95 active:bg-[#3B200F]">
                                 <?php echo ($user_has_reviewed) ? 'บันทึกการแก้ไข' : 'ส่งรีวิว'; ?>
                             </button>
                         </form>
                         <?php if ($user_has_reviewed): ?>
-                            <form action="submit_review.php" method="POST" onsubmit="return confirm('คุณแน่ใจหรือไม่ที่ต้องการลบรีวิวนี้?');" class="mt-2">
+                            <form action="submit_review.php" method="POST" onsubmit="return confirm('คุณแน่ใจหรือไม่ที่ต้องการลบรีวิวนี้?');" class="mt-3">
                                 <input type="hidden" name="restaurant_id" value="<?php echo htmlspecialchars($restaurant_id); ?>">
                                 <input type="hidden" name="review_id" value="<?php echo htmlspecialchars($user_review['review_id']); ?>">
                                 <input type="hidden" name="action" value="delete_review">
-                                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                <button type="submit"
+                                        class="bg-red-600 text-white font-bold py-2 px-4 rounded-md
+                                            focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-opacity-75
+                                            transform transition-all duration-300 shadow-md
+                                            hover:scale-105 hover:shadow-lg hover:bg-red-700 active:scale-95 active:bg-red-800">
                                     ลบรีวิว
                                 </button>
                             </form>
                         <?php endif; ?>
                     <?php else: ?>
-                        <p class="mt-4 text-gray-600">
-                            <a href="login.php" class="text-blue-600 hover:underline font-semibold">เข้าสู่ระบบ</a> เพื่อเขียนรีวิว
+                        <p class="mt-4 text-gray-600 text-base">
+                            <a href="login.php" class="text-[#4F2B14] text-xl hover:underline font-bold">เข้าสู่ระบบ</a> เพื่อเขียนรีวิว
                         </p>
                     <?php endif; ?>
                 </div>
 
-                <h4 class="text-xl font-bold mb-4 mt-8 text-gray-700">รีวิวทั้งหมด</h4>
+                <h4 class="text-2xl font-bold mb-4 mt-8 text-gray-700">รีวิวทั้งหมด</h4>
                 <div class="all-reviews-list">
                 <?php
-                // ดึงข้อมูลรีวิวทั้งหมด ยกเว้นรีวิวของผู้ใช้ปัจจุบันที่เพิ่งถูกแสดงในฟอร์ม (ถ้ามี)
+                // ดึงข้อมูลรีวิวทั้งหมด
                 $reviews_sql = "
                     SELECT
                         rr.review_id,
@@ -437,10 +452,10 @@
                     if (!empty($reviews)) {
                         foreach ($reviews as $review) {
                             ?>
-                            <div class="review-item border-b border-gray-200 pb-4 mb-4 last:border-b-0 last:pb-0 flex items-start bg-white p-4 rounded-lg shadow-sm">
+                            <div class="review-item border-b border-gray-200 pb-4 mb-4 last:border-b-0 last:pb-0 flex items-start bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
                                 <div class="flex-shrink-0 mr-4">
                                     <img src="<?php echo htmlspecialchars($review['profile_picture_url'] ?? '../images/default_profile.png'); ?>"
-                                         alt="รูปโปรไฟล์" class="w-12 h-12 rounded-full object-cover border border-gray-200">
+                                        alt="รูปโปรไฟล์" class="w-14 h-14 rounded-full object-cover border-2 border-gray-200 shadow-sm">
                                 </div>
                                 <div class="flex-grow">
                                     <p class="text-lg font-semibold text-gray-900">
@@ -461,7 +476,7 @@
                                             เมื่อ: <?php echo date('d/m/Y H:i', strtotime($review['review_date'])); ?>
                                         </span>
                                     </p>
-                                    <p class="mt-2 text-gray-800">
+                                    <p class="mt-2 text-gray-800 leading-relaxed">
                                         <?php echo nl2br(htmlspecialchars($review['text'])); ?>
                                     </p>
                                 </div>
@@ -469,33 +484,35 @@
                             <?php
                         }
                     } else {
-                        echo '<p class="text-gray-600">ยังไม่มีความคิดเห็นสำหรับร้านนี้.</p>';
+                        echo '<p class="text-gray-600 mt-4 text-base">ยังไม่มีความคิดเห็นสำหรับร้านนี้.</p>';
                     }
                 } catch (\PDOException $e) {
-                    echo '<p class="error-message">เกิดข้อผิดพลาดในการดึงความคิดเห็น: ' . $e->getMessage() . '</p>';
+                    echo '<p class="error-message text-red-600 bg-red-100 p-4 rounded-md mt-4">เกิดข้อผิดพลาดในการดึงความคิดเห็น: ' . $e->getMessage() . '</p>';
                 }
                 ?>
                 </div>
             </div>
         </div>
         <?php
-            } else { // ปิด if ($restaurant) ที่เปิดไว้ด้านบน
-                echo '<p class="error-message">ไม่พบข้อมูลร้านอาหาร.</p>';
+            } else { 
+                echo '<p class="error-message text-red-600 bg-red-100 p-4 rounded-md mb-4">ไม่พบข้อมูลร้านอาหาร.</p>';
             }
 
-        } catch (\PDOException $e) { // ปิด try ของการดึงข้อมูลร้านอาหารหลัก
-            echo '<p class="error-message">เกิดข้อผิดพลาดในการดึงข้อมูลร้านอาหาร: ' . $e->getMessage() . '</p>';
+        } catch (\PDOException $e) { 
+            echo '<p class="error-message text-red-600 bg-red-100 p-4 rounded-md mb-4">เกิดข้อผิดพลาดในการดึงข้อมูลร้านอาหาร: ' . $e->getMessage() . '</p>';
         }
         ?>
-        <a href="restaurants_list.php" class="back-button mt-8 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition duration-200">
+        <br>
+        <a href="restaurants_list.php" 
+        class="inline-block px-5 py-2 rounded-full font-bold text-base shadow-lg transform transition-all duration-300
+                                        bg-[#4F2B14] text-[#F8C44E]
+                                        hover:scale-105 hover:shadow-xl hover:bg-[#6A3F1F]
+                                        focus:outline-none focus:ring-4 focus:ring-[#4F2B14] focus:ring-opacity-50
+                                        active:scale-95 active:bg-[#3B200F]">
             กลับไปหน้ารายการร้านอาหาร
         </a>
     </div>
 
-    <div id="imageModal" class="modal">
-        <span class="close">&times;</span>
-        <img class="modal-content" id="modalImage">
-    </div>
 
     <script src="../js/common.js?v=<?php echo time(); ?>"></script>
     <script src="../js/restaurant_detail.js?v=<?php echo time(); ?>"></script>
